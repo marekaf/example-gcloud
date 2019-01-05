@@ -12,11 +12,11 @@ action "Build Docker image" {
 }
 
 # Deploy Filter
-action "Deploy branch filter" {
-  needs = ["Set Credential Helper for Docker"]
-  uses = "actions/bin/filter@master"
-  args = "branch master"
-}
+#action "Deploy branch filter" {
+#  needs = ["Set Credential Helper for Docker"]
+#  uses = "actions/bin/filter@master"
+#  args = "branch master"
+#}
 
 action "Setup Google Cloud" {
   uses = "actions/gcloud/auth@master"
