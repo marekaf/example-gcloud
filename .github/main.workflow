@@ -1,4 +1,4 @@
-workflow "My workflow" {
+workflow "New workflow" {
   on = "push"
   resolves = [
     "Verify GKE deployment",
