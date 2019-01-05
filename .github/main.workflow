@@ -1,11 +1,9 @@
-workflow "Build and Deploy" {
+workflow "New workflow" {
   on = "push"
   resolves = [
     "Verify GKE deployment",
   ] 
 }
-
-# Build
 
 action "Build Docker image" {
   uses = "actions/docker/cli@master"
@@ -19,18 +17,27 @@ action "Deploy branch filter" {
   args = "branch master"
 }
 
-# GKE
-
 action "Setup Google Cloud" {
   uses = "actions/gcloud/auth@master"
   secrets = ["GCLOUD_AUTH"]
+}
+
+action "Load credentials" {
+  needs = ["Setup Google Cloud"]
+  uses = "actions/gcloud/cli@master"
+  env = {
+    PROJECT_ID = "mab-testing"
+    CLUSTER_NAME = "github-actions"
+    CLUSTER_ZONE = "europe-west1-d"
+  }
+  args = "container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID"
 }
 
 action "Tag image for GCR" {
   needs = ["Setup Google Cloud", "Build Docker image"]
   uses = "actions/docker/tag@master"
   env = {
-    PROJECT_ID = "fifth-byte-211221"
+    PROJECT_ID = "mab-testing"
     APPLICATION_NAME = "gcloud-example-app"
   }
   args = ["gcloud-example-app", "gcr.io/$PROJECT_ID/$APPLICATION_NAME"]
@@ -47,7 +54,7 @@ action "Push image to GCR" {
   uses = "actions/gcloud/cli@master"
   runs = "sh -c"
   env = {
-    PROJECT_ID = "fifth-byte-211221"
+    PROJECT_ID = "mab-testing"
     APPLICATION_NAME = "gcloud-example-app"
   }
   args = ["docker push gcr.io/$PROJECT_ID/$APPLICATION_NAME"]
@@ -57,10 +64,11 @@ action "Load GKE kube credentials" {
   needs = ["Setup Google Cloud", "Push image to GCR"]
   uses = "actions/gcloud/cli@master"
   env = {
-    PROJECT_ID = "fifth-byte-211221"
-    CLUSTER_NAME = "workflow-example-cluster"
+    PROJECT_ID = "mab-testing"
+    CLUSTER_NAME = "github-actions"
+    CLUSTER_ZONE = "europe-west1-d"
   }
-  args = "container clusters get-credentials $CLUSTER_NAME --zone us-central1-a --project $PROJECT_ID"
+  args = "container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE --project $PROJECT_ID"
 }
 
 # TODO Add Action to start GitHub Deploy
@@ -68,7 +76,7 @@ action "Deploy to GKE" {
   needs = ["Push image to GCR", "Load GKE kube credentials"]
   uses = "docker://gcr.io/cloud-builders/kubectl"
   env = {
-    PROJECT_ID = "fifth-byte-211221"
+    PROJECT_ID = "mab-testing"
     APPLICATION_NAME = "gcloud-example-app"
     DEPLOYMENT_NAME = "app-example"
   }
