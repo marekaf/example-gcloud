@@ -2,7 +2,7 @@ workflow "My workflow" {
   on = "push"
   resolves = [
     "Verify GKE deployment",
-  ] 
+  ]
 }
 
 action "Build Docker image" {
