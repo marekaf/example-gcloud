@@ -51,7 +51,7 @@ action "Set Credential Helper for Docker" {
 }
 
 action "Push image to GCR" {
-  needs = ["Setup Google Cloud", "Deploy branch filter"]
+  needs = ["Setup Google Cloud"]
   uses = "actions/gcloud/cli@master"
   runs = "sh -c"
   env = {
